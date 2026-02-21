@@ -20,6 +20,17 @@ fn setup_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         Transform::from_xyz(0.0, 0.0, 0.0),
     ));
 
+    // let logo_handle = asset_server.load("images/Khmer_Lesson_Logo.png");
+
+    commands.spawn((
+        Sprite::from_image(asset_server.load("Khmer_Lesson_Logo.png")),
+        Transform {
+            translation: Vec3::new(0.0, 250.0, 10.0), // x=0 center, y=250 en haut, z=10 pour être devant tout
+            scale: Vec3::splat(0.2),                  // ajuste si trop grand / petit
+            ..default()
+        },
+    ));
+
     // left box
     commands.spawn((
         Sprite {
