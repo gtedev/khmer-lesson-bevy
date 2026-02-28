@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use indexmap::IndexMap;
 use rand::Rng;
 
+#[derive(Clone)]
 struct TextBoxArea {
     x: f32,
     y: f32,
@@ -17,9 +18,9 @@ static LEFT_BOX: TextBoxArea = TextBoxArea {
 
 static RIGHT_BOX: TextBoxArea = TextBoxArea {
     x: 220.0,
-    y: 0.0,
+    y: 180.0,
     z: 2.0,
-    font_size: 160.0
+    font_size: 40.0
 };
 
 static BOTTOM_BOX: TextBoxArea = TextBoxArea {
@@ -41,25 +42,43 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
     let consons = get_consons();
     let mut rng = rand::rng();
     let n: usize = rng.random_range(0..=13);
-    let letter = consons.get_index(n);
+    // let letter = consons.get_index(n);
+
+    let letter = consons
+        .iter()
+        .find(|item| item.0 == &"T");
 
     display_text(&mut commands, &asset_server, &&("Hey, provide the khmer letter that corresponds to that sound on the LEFT BOX ?"), &BOTTOM_BOX);
 
     let _ = match letter {
         Some(name) => {
-            display_text(&mut commands, &asset_server, name.0, &LEFT_BOX);
+            display_text(&mut commands, &asset_server, *name.0, &LEFT_BOX);
 
-            // let possible_responses: Vec<(usize, &'static str, bool)> = name
-            //     .1
-            //     .iter()
-            //     .enumerate()
-            //     .map(|(i, v)| (i, v.phonetic, saisie == v.letter))
-            //     .collect();
+            let possible_responses: Vec<(usize, &'static str)> = name
+                .1
+                .iter()
+                .enumerate()
+                .map(|(i, v)| (i, v.letter))
+                .collect();
 
-            // possible_responses
-            //     .iter()
-            //     .for_each(|response| println!("{}. {}", response.0, response.1));
-        }
+            possible_responses
+                .iter()
+                .for_each(|response| 
+                {
+                    let my_text = format!("{}. {} ", response.0, response.1);
+
+                    let b = TextBoxArea {
+                            y: RIGHT_BOX.y + (response.0 as f32 * -50.0),
+                            ..RIGHT_BOX
+                        };
+
+                    display_text(
+                        &mut commands,
+                        &asset_server,
+                        &my_text,
+                        &b);
+                });
+    }
         None => println!("No name provided"),
     };
 }
@@ -272,7 +291,7 @@ fn get_consons() -> IndexMap<&'static str, Vec<Conson>> {
 fn display_text(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
-    text: &&str,
+    text: &str,
     area: &TextBoxArea,
 ) {
     commands.spawn((
