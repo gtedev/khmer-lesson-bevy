@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use indexmap::IndexMap;
 use rand::Rng;
 
+static KHMER_CONSONS_NUMBER: usize = 33;
+
 #[derive(Clone)]
 struct TextBoxArea {
     x: f32,
@@ -40,13 +42,13 @@ impl Plugin for AlphabetPlugin {
 
 fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
     let consons = get_consons();
-    let mut rng = rand::rng();
-    let n: usize = rng.random_range(0..=13);
-    // let letter = consons.get_index(n);
+    let n: usize = random_number(13);
 
-    let letter = consons
-        .iter()
-        .find(|item| item.0 == &"T");
+    let letter = consons.get_index(n);
+
+    // let letter = consons
+    //     .iter()
+    //     .find(|item| item.0 == &"T");
 
     display_text(&mut commands, &asset_server, &&("Hey, provide the khmer letter that corresponds to that sound on the LEFT BOX ?"), &BOTTOM_BOX);
 
@@ -54,8 +56,8 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
         Some(name) => {
             display_text(&mut commands, &asset_server, *name.0, &LEFT_BOX);
 
-            let possible_responses: Vec<(usize, &'static str)> = name
-                .1
+            let possible_responses: Vec<(usize, &'static str)> =
+                random_5_consons()
                 .iter()
                 .enumerate()
                 .map(|(i, v)| (i, v.letter))
@@ -63,7 +65,7 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
 
             possible_responses
                 .iter()
-                .for_each(|response| 
+                .for_each(|response|
                 {
                     let my_text = format!("{}. {} ", response.0, response.1);
 
@@ -83,6 +85,7 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
     };
 }
 
+#[derive(Clone)]
 pub struct Conson {
     pub letter: &'static str,
     pub phonetic: &'static str,
@@ -232,10 +235,6 @@ fn get_consons() -> IndexMap<&'static str, Vec<Conson>> {
                     letter: "ភ",
                     phonetic: "Pho",
                 },
-                Conson {
-                    letter: "ផ",
-                    phonetic: "Phö",
-                },
             ],
         ),
         (
@@ -286,6 +285,32 @@ fn get_consons() -> IndexMap<&'static str, Vec<Conson>> {
             }],
         ),
     ]);
+}
+
+fn random_5_consons() -> Vec<Conson>
+{
+    let consons_local = get_consons();
+
+    let mut consons: Vec<(usize, &Conson)> =
+        consons_local
+        .iter()
+        .flat_map(|f| f.1.iter())
+        .map(|x| (random_number(KHMER_CONSONS_NUMBER), x))
+        .collect();
+
+    consons.sort_by(|a, b| a.0.cmp(&b.0));
+
+    consons.iter()
+        .map(|x| x.1)
+        .take(5)
+        .cloned()
+        .collect()
+}
+
+fn random_number(max: usize) -> usize
+{
+      let mut rng = rand::rng();
+    rng.random_range(0..=max)
 }
 
 fn display_text(
