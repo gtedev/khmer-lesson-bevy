@@ -2,20 +2,31 @@ use bevy::prelude::*;
 use indexmap::IndexMap;
 use rand::Rng;
 
-struct BoxArea {
+struct TextBoxArea {
     x: f32,
     y: f32,
     z: f32,
+    font_size: f32
 }
-static LEFT_BOX: BoxArea = BoxArea {
+static LEFT_BOX: TextBoxArea = TextBoxArea {
     x: -220.0,
     y: 0.0,
     z: 2.0,
+    font_size: 160.0
 };
-static RIGHT_BOX: BoxArea = BoxArea {
+
+static RIGHT_BOX: TextBoxArea = TextBoxArea {
     x: 220.0,
     y: 0.0,
     z: 2.0,
+    font_size: 160.0
+};
+
+static BOTTOM_BOX: TextBoxArea = TextBoxArea {
+    x: -120.0,
+    y: -300.0,
+    z: 2.0,
+    font_size: 20.0
 };
 
 pub struct AlphabetPlugin;
@@ -31,6 +42,8 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
     let mut rng = rand::rng();
     let n: usize = rng.random_range(0..=13);
     let letter = consons.get_index(n);
+
+    display_text(&mut commands, &asset_server, &&("Hey, provide the khmer letter that corresponds to that sound on the LEFT BOX ?"), &BOTTOM_BOX);
 
     let _ = match letter {
         Some(name) => {
@@ -260,13 +273,13 @@ fn display_text(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
     text: &&str,
-    area: &BoxArea,
+    area: &TextBoxArea,
 ) {
     commands.spawn((
         Text2d::new(text.to_string()),
         TextFont {
             font: asset_server.load("fonts/khmer.ttf"),
-            font_size: 160.0,
+            font_size: area.font_size,
             ..default()
         },
         TextColor(Color::WHITE),
