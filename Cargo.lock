@@ -2879,6 +2879,8 @@ name = "khmer-lesson-bevy"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "indexmap",
+ "rand",
 ]
 
 [[package]]

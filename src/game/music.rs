@@ -13,7 +13,7 @@ impl Plugin for MusicPlugin {
 fn setup_music(mut commands: Commands, asset_server: Res<AssetServer>) {
     let music: Handle<AudioSource> = asset_server.load("khmer_music.ogg");
 
-        commands.spawn((
+    commands.spawn((
         AudioPlayer::new(music),
         PlaybackSettings::LOOP
             .with_start_position(Duration::from_secs(3))

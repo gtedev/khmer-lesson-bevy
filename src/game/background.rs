@@ -59,15 +59,4 @@ fn setup_background(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Transform::from_xyz(0.0, -350.0, 1.0),
     ));
-
-    commands.spawn((
-        Text2d::new("ក"), // caractère khmer
-        TextFont {
-            font: asset_server.load("fonts/khmer.ttf"),
-            font_size: 160.0, // ajuste si trop gros / trop petit
-            ..default()
-        },
-        TextColor(Color::WHITE),
-        Transform::from_xyz(-220.0, 0.0, 2.0), // même centre que la box, mais z plus grand
-    ));
 }
