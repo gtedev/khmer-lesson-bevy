@@ -55,17 +55,17 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
         &asset_server,
         &&("Hey, provide the khmer letter that corresponds to that sound on the LEFT BOX ?"),
         &BOTTOM_BOX,
+        None,
     );
 
     let _ = match letter {
         Some(name) => {
-            display_text(&mut commands, &asset_server, *name.0, &LEFT_BOX);
+            display_text(&mut commands, &asset_server, *name.0, &LEFT_BOX, None);
 
             let matrix_lines: Vec<Vec<ConsonMatrixItem>> = random_consons_matrix();
 
             matrix_lines.iter().for_each(|consons_line| {
                 consons_line.iter().for_each(|x| {
-                    // let my_text = format!("{}. {} ", x.conson.0, x.conson.1);
                     let my_text = format!("{}", x.conson.1);
 
                     let b = TextBoxArea {
@@ -74,7 +74,20 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
                         ..RIGHT_BOX
                     };
 
-                    display_text(&mut commands, &asset_server, &my_text, &b);
+                    let c = TextBoxArea {
+                        y: b.y - 30.0,
+                        font_size: 15.0,
+                        ..b
+                    };
+
+                    display_text(&mut commands, &asset_server, &my_text, &b, None);
+                    display_text(
+                        &mut commands,
+                        &asset_server,
+                        &x.conson.0.to_string(),
+                        &c,
+                        Some(Color::srgb_u8(119, 173, 237)), // blue
+                    );
                 });
             });
         }
@@ -338,6 +351,7 @@ fn display_text(
     asset_server: &Res<AssetServer>,
     text: &str,
     area: &TextBoxArea,
+    color: Option<Color>,
 ) {
     commands.spawn((
         Text2d::new(text.to_string()),
@@ -346,7 +360,10 @@ fn display_text(
             font_size: area.font_size,
             ..default()
         },
-        TextColor(Color::WHITE),
+        match color {
+            Some(color_value) => TextColor(color_value),
+            None => TextColor(Color::WHITE),
+        },
         Transform::from_xyz(area.x, area.y, area.z),
     ));
 }
