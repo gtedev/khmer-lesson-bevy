@@ -8,6 +8,5 @@ fn main() {
         .add_plugins(game::background::BackgroundPlugin)
         .add_plugins(game::music::MusicPlugin)
         .add_plugins(game::alphabet::AlphabetPlugin)
-        .add_plugins(game::answering::AnsweringPlugin)
         .run();
 }
