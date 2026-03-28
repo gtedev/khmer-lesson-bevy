@@ -32,16 +32,36 @@ static BOTTOM_BOX: TextBoxArea = TextBoxArea {
     font_size: 20.0,
 };
 
+#[derive(Resource, Default)]
+struct InputText {
+    text: String,
+}
+
+#[derive(Component)]
+struct BottomBoxTextQuestion;
+#[derive(Component)]
+struct BottomBoxTextAnswer;
+#[derive(Component)]
+struct LeftBoxBigLetter;
+
+#[derive(Component)]
+struct RightBoxMatrixConson;
+
+#[derive(Component)]
+struct RightBoxMatrixConsonNumber;
+
+
 pub struct AlphabetPlugin;
 
 impl Plugin for AlphabetPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_consons);
-        app.add_systems(Update, number_key_system);
+        app.init_resource::<InputText>();
+        app.add_systems(Update, (number_key_system, update_text_system));
     }
 }
 
-fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>,  input_text: Res<InputText>,) {
     let consons = get_consons();
     let n: usize = random_number(13);
 
@@ -57,11 +77,21 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
         &&("Hey, provide the khmer letter that corresponds to that sound on the LEFT BOX ?"),
         &BOTTOM_BOX,
         None,
+        BottomBoxTextQuestion
     );
+
+    // // Let's init the input display from user
+    let b = TextBoxArea {
+        x: BOTTOM_BOX.x - 250.0,
+        y: BOTTOM_BOX.y - 30.0,
+        ..BOTTOM_BOX
+    };
+
+    display_text(&mut commands, &asset_server, &&(&input_text.text.to_string()), &b, None, BottomBoxTextAnswer);
 
     let _ = match letter {
         Some(name) => {
-            display_text(&mut commands, &asset_server, *name.0, &LEFT_BOX, None);
+            display_text(&mut commands, &asset_server, *name.0, &LEFT_BOX, None, LeftBoxBigLetter);
 
             let matrix_lines: Vec<Vec<ConsonMatrixItem>> = random_consons_matrix();
 
@@ -81,13 +111,14 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
                         ..b
                     };
 
-                    display_text(&mut commands, &asset_server, &my_text, &b, None);
+                    display_text(&mut commands, &asset_server, &my_text, &b, None, RightBoxMatrixConson);
                     display_text(
                         &mut commands,
                         &asset_server,
                         &x.conson.0.to_string(),
                         &c,
                         Some(Color::srgb_u8(119, 173, 237)), // blue
+                        RightBoxMatrixConsonNumber
                     );
                 });
             });
@@ -96,10 +127,22 @@ fn setup_consons(mut commands: Commands, asset_server: Res<AssetServer>) {
     };
 }
 
+fn update_text_system(
+    input_text: Res<InputText>,
+    mut query: Query<&mut Text2d, With<BottomBoxTextAnswer>>,
+) {
+    if input_text.is_changed() {
+        for mut text in &mut query {
+            *text = Text2d::new(input_text.text.clone());
+        }
+    }
+}
+
 fn number_key_system(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    // mut commands: Commands,
+    // asset_server: Res<AssetServer>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut input_text: ResMut<InputText>,
 ) {
     let numbers = [
         KeyCode::Digit1,
@@ -119,13 +162,7 @@ fn number_key_system(
             let key1 = i + 1;
             println!("Digit {} pressed", i);
 
-            let b = TextBoxArea {
-                x: BOTTOM_BOX.x - 250.0,
-                y: BOTTOM_BOX.y - 30.0,
-                ..BOTTOM_BOX
-            };
-
-            display_text(&mut commands, &asset_server, &&(key1.to_string()), &b, None);
+            input_text.text.push_str(&key1.to_string());
         }
     }
 }
@@ -381,12 +418,13 @@ fn random_number(max: usize) -> usize {
     rng.random_range(0..=max)
 }
 
-fn display_text(
+fn display_text<T: Component>(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
     text: &str,
     area: &TextBoxArea,
     color: Option<Color>,
+    marker: T
 ) {
     commands.spawn((
         Text2d::new(text.to_string()),
@@ -400,5 +438,6 @@ fn display_text(
             None => TextColor(Color::WHITE),
         },
         Transform::from_xyz(area.x, area.y, area.z),
+        marker,
     ));
 }
